@@ -67,6 +67,7 @@ struct configStruct readConfig(char* configPath){
   i = 0;
   bracket = 0;
   hard = 0;
+  bool quote = false;
   short mode = 0; //0 = utanför hakar, 1=paths, 2=folders, 3=settings
   short submode = 0; //0 = inget läge, 1=titel/path, 2=tags, 3 = extentions, mer = settings
   while((c=getc(fp))!=EOF){
@@ -76,6 +77,7 @@ struct configStruct readConfig(char* configPath){
       case ']':hard--;break;
       case '{':bracket++;break;
       case '}':bracket--;break;
+      case '"':quote = !quote; break;
     }
     switch(mode){
       case 0: {
@@ -98,37 +100,26 @@ struct configStruct readConfig(char* configPath){
                 bracket=0;
                 break;
               }
-      case 1: {
+      case 1: {//läser paths
                 if(hard==0){
                   mode = 0;
                   break;
                 }
                 switch(submode){
-                  case 0:{
-                    if(!strcmp(buffer, "path")){
+                  case 0:{//läser submode i paths
+                    if(!strcmp(buffer, "#path")){
                       mode=1;
                       memset(buffer, 0, sizeof(buffer));
                       i=0;
                     }
-                    if(!strcmp(buffer, "path")){
-                      mode=1;
+                    if(!strcmp(buffer, "#tags")){
+                      mode=2;
                       memset(buffer, 0, sizeof(buffer));
                       i=0;
                     }
-                    if(!strcmp(buffer, "path")){
-                      mode=1;
-                      memset(buffer, 0, sizeof(buffer));
-                      i=0;
-                    }
+                     }
+                  case 1: {//läser path i paths
 
-
-
-              
-
-
-
-                }
-      case 2: {
 
 
 
