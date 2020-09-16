@@ -22,6 +22,7 @@ struct folderStruct{
 };
 struct configStruct{
   char paths[100][80];
+  int amountOfPaths;
   struct folderStruct folders[100];
 };
 
@@ -61,9 +62,10 @@ struct pathStruct readPath(char* pathStr){
 struct configStruct readConfig(char* configPath){
   FILE *fp = fopen(configPath, "r");
   struct configStruct config;
+  config.amountOfPaths = 0;
   char buffer[200];
   int c, i, bracket, hard;
-  br
+  bracket = 0;
   i = 0;
   bracket = 0;
   hard = 0;
@@ -71,30 +73,31 @@ struct configStruct readConfig(char* configPath){
   short mode = 0; //0 = utanför hakar, 1=paths, 2=folders, 3=settings
   short submode = 0; //0 = inget läge, 1=titel/path, 2=tags, 3 = extentions, mer = settings
   while((c=getc(fp))!=EOF){
-    buffer[i] = c;
     switch(c){
       case '[':hard++;break;
       case ']':hard--;break;
       case '{':bracket++;break;
       case '}':bracket--;break;
       case '"':quote = !quote; break;
+      default: buffer[i] = c;break;
     }
     switch(mode){
       case 0: {
                 if(!strcmp(buffer, "#paths")){
                     mode = 1;
                     memset(buffer, 0, sizeof(buffer));
-                    i=0
+                    memset(config.paths[i],0,sizeof(config.paths[i]));
+                    i=0;
                 }
                 if(!strcmp(buffer, "#folders")){
                     mode = 2;
                     memset(buffer, 0, sizeof(buffer));
-                    i=0
+                    i=0;
                 }
                 if(!strcmp(buffer, "#settings")){
                     mode = 3;
                     memset(buffer, 0, sizeof(buffer));
-                    i=0
+                    i=0;
                 }
                 hard=0;
                 bracket=0;
@@ -119,7 +122,9 @@ struct configStruct readConfig(char* configPath){
                     }
                      }
                   case 1: {//läser path i paths
-
+                        if(quotes && strlen(config.paths[config.amountOfPaths]) ==0)
+                          memset(config.paths[i],0,sizeof(config.paths[i]));
+                        if(!quotes && strlen(buffer) >){
 
 
 
