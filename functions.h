@@ -79,6 +79,7 @@ struct configStruct readConfig(char* configPath){
       case '{':bracket++;break;
       case '}':bracket--;break;
       case '"':quote = !quote; break;
+      case '=':memset(buffer, 0, sizeof(buffer));break;
       default: buffer[i] = c;break;
     }
     switch(mode){
@@ -86,7 +87,6 @@ struct configStruct readConfig(char* configPath){
                 if(!strcmp(buffer, "#paths")){
                     mode = 1;
                     memset(buffer, 0, sizeof(buffer));
-                    memset(config.paths[i],0,sizeof(config.paths[i]));
                     i=0;
                 }
                 if(!strcmp(buffer, "#folders")){
@@ -113,6 +113,7 @@ struct configStruct readConfig(char* configPath){
                     if(!strcmp(buffer, "#path")){
                       mode=1;
                       memset(buffer, 0, sizeof(buffer));
+                      memset(config.paths[config.amountOfPaths],0,sizeof(config.paths[config.amountOfPaths]));
                       i=0;
                     }
                     if(!strcmp(buffer, "#tags")){
@@ -122,17 +123,19 @@ struct configStruct readConfig(char* configPath){
                     }
                      }
                   case 1: {//läser path i paths
-                        if(quotes && strlen(config.paths[config.amountOfPaths]) ==0)
-                          memset(config.paths[i],0,sizeof(config.paths[i]));
-                        if(!quotes && strlen(buffer) >){
+                        if(!quotes && strlen(buffer) >1){
+                          memcpy(config.paths[config.amountOfPaths], buffer, sizeof(config.paths[config.amountOfPaths]));
+                          config.amountOfPaths++;
+                          submode = 0;
+                        }
+                      }
+                  case 2: {//läser in tags i paths
+                      if(!quotes && strlen(buffer) >1){
+                          memcpy(config.paths[config.amountOfPaths], buffer, sizeof(config.paths[config.amountOfPaths]));
+                          config.amountOfPaths++;
+                          submode = 0;
+                        }
 
-
-
-              
-
-
-
-                }
       case 3: {
 
 
