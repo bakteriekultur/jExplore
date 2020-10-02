@@ -28,10 +28,10 @@ struct configStruct{
   int amountOfFolders;
 };
 
-struct pathStruct readPath(char* pathStr){
+struct pathStruct readPath(struct pathStruct path){
   FILE *fp;
-  struct pathStruct path;
   char buffer[50];
+  char* pathStr = path.pathStr;
   char c=0;
   int i=0;
   int j=0;
@@ -74,7 +74,6 @@ struct configStruct readConfig(char* configPath){
   hard = 0;
   bool equals = false;
   bool quote = false;
-  bool new = false;
   short mode = 0; //0 = utanför hakar, 1=paths, 2=folders, 3=settings
   short submode = 0; //0 = inget läge, 1=titel/path, 2=tags, 3 = extensions, mer = settings
   if(0==(fp=(FILE*)fopen(configPath, "r"))){
@@ -91,9 +90,8 @@ struct configStruct readConfig(char* configPath){
       case ',':break;
       case ' ':break;
       case '\n':break;
-      default:buffer[i] = c; new=true;
+      default:buffer[i] = c;i++; 
     }
-    //if(strlen(buffer)>0)printf("Mode %d, Submode %d c %c\n", mode, submode,c);
     if(c==']'&&hard==0){
       mode = 0;
       submode = 0;
@@ -115,10 +113,6 @@ struct configStruct readConfig(char* configPath){
                 }
                 hard=0;
                 bracket=0;
-                if(new){
-                  i++;
-                  new=false;
-                }
                 if(mode!=0){
                     memset(buffer, 0, sizeof(buffer));
                     i=0;
@@ -126,13 +120,8 @@ struct configStruct readConfig(char* configPath){
                 break;
               }
       case 1: {//läser #paths
-               //if(strlen(buffer)>0) printf("buffer: %s\n", buffer);
                 switch(submode){
                   case 0:{//läser submode i #paths
-                    if(new){
-                      i++;
-                      new=false;
-                    }
 
                     if(c==','&&bracket==0){
                       config.amountOfPaths++;
@@ -154,10 +143,6 @@ struct configStruct readConfig(char* configPath){
                     break;
                    }
                   case 1: {//läser path i #paths
-                        if(new){
-                          i++;
-                          new=false;
-                        }
                         if(!quote && equals && strlen(buffer)>0){
                           memcpy(config.paths[config.amountOfPaths].pathStr, buffer, sizeof(config.paths[config.amountOfPaths].pathStr));
                           equals = false;
@@ -168,11 +153,6 @@ struct configStruct readConfig(char* configPath){
                         break;
                       }
                   case 2: {//läser in tags i #paths
-                      //if(strlen(buffer)>0) printf("buffer: %s\n", buffer);
-                      if(new){
-                        i++;
-                        new=false;
-                      }
                       if(bracket==1 && c=='}'){
                           equals = false;
                           submode = 0;
@@ -193,7 +173,6 @@ struct configStruct readConfig(char* configPath){
                 break;
                 }
         case 2:{//läser #folders
-                //if(strlen(buffer)>0) printf("%s ", buffer);
                 if(c==','&&bracket==0){
                   config.amountOfFolders++;
                   config.folders[config.amountOfFolders].amountOfExtensions=0;
@@ -203,10 +182,6 @@ struct configStruct readConfig(char* configPath){
                 }
                 switch(submode){
                   case 0:{//läser submode i #folders
-                    if(new){
-                      i++;
-                      new=false;
-                    }
                     if(!strcmp(buffer, "title")){
                       submode=1;
                       memset(config.folders[config.amountOfFolders].title,0,sizeof(config.folders[config.amountOfFolders].title));
@@ -229,12 +204,7 @@ struct configStruct readConfig(char* configPath){
                     break;
                          }
               case 1:{//läser in title i #folders
-                  if(new){
-                    i++;
-                    new=false;
-                  }
                   if(!quote && equals && strlen(buffer)>0){
-                    printf("title: %s\n",buffer);
                     memcpy(config.folders[config.amountOfFolders].title, buffer, sizeof(config.folders[config.amountOfFolders].title));
                     equals = false;
                     submode = 0;
@@ -245,14 +215,8 @@ struct configStruct readConfig(char* configPath){
                 }
 
             case 2: {//läser in tags i #folders
-                //if(strlen(buffer)>0) printf("buffer: %s\n", buffer);
-                if(new){
-                  i++;
-                  new=false;
-                }
                 if(bracket==1 && c=='}'){
                     memcpy(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags], buffer, sizeof(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags]));
-                    printf("Tag: %s\n",buffer);
                     memset(buffer,0,sizeof(buffer));
                     equals = false;
                     submode = 0;
@@ -260,7 +224,7 @@ struct configStruct readConfig(char* configPath){
                 }
                 if(bracket==2&&c==','){
                     memcpy(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags], buffer, sizeof(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags]));
-                    printf("Tag: %s\n",buffer);
+                    //printf("Tag: %s\n",buffer);
                     memset(buffer,0,sizeof(buffer));
                     config.folders[config.amountOfFolders].amountOfTags++;
                     memset(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags],0,sizeof(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags]));
@@ -269,13 +233,8 @@ struct configStruct readConfig(char* configPath){
                 break;
                     }
       case 3:{//läser in extensions i #folders
-                if(new){
-                  i++;
-                  new=false;
-                }
                 if(bracket==1 && c=='}'){
                     memcpy(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions-1], buffer, sizeof(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions-1]));
-                    printf("Extension: %s\n",buffer);
                     memset(buffer,0,sizeof(buffer));
                     equals = false;
                     submode = 0;
@@ -283,7 +242,6 @@ struct configStruct readConfig(char* configPath){
                 }
                 if(bracket==2&&c==','){
                     memcpy(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions-1], buffer, sizeof(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfExtensions - 1]));
-                    printf("Extensions: %s\n",buffer);
                     memset(buffer,0,sizeof(buffer));
                     memset(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions],0,sizeof(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions]));
                     config.folders[config.amountOfFolders].amountOfExtensions++;
@@ -297,7 +255,6 @@ struct configStruct readConfig(char* configPath){
                 }
     }
   }
-  //printf("Path 1:%s, tags: %s, %s.\n Path 2: %s,tags: %s\n",config.paths[0].pathStr,config.paths[0].tags[0],config.paths[0].tags[1],config.paths[1].pathStr,config.paths[1].tags[0]);
   return config;
 }
 
