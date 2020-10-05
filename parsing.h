@@ -28,17 +28,23 @@ struct configStruct{
   int amountOfFolders;
 };
 
-struct pathStruct readPath(struct pathStruct path){
+struct pathStruct readPath(struct pathStruct path, struct folderStruct folder){
   FILE *fp;
   char buffer[50];
   char* pathStr = path.pathStr;
-  char c=0;
-  int i=0;
   int j=0;
-  char command[strlen(pathStr)+12];
+  char c=0;
+  printf("pong\n");
+  for(int k=0;k<=folder.amountOfExtensions;k++){
+    printf("Extension: %s\n",folder.extensions[k]);
+  int i=0;
+  char command[strlen(pathStr)+strlen(folder.extensions[k])+12];
   strcpy(command, "dir ");
   strcat(command, pathStr);
-  strcat(command, " /a-d/b");
+  strcat(command, "\\*.");
+  strcat(command, folder.extensions[k]);
+  strcat(command, " /d/b");
+  printf("command %s\n",command);
   if(0==(fp=(FILE*)popen(command, "r"))){
     perror("popen() failed\n");
     exit(EXIT_FAILURE);
@@ -57,6 +63,7 @@ struct pathStruct readPath(struct pathStruct path){
     }
   }
   pclose(fp);
+  }
   path.amountOfFiles = j;
   return path;
 }
@@ -107,6 +114,11 @@ struct configStruct readConfig(char* configPath){
                 if(!strcmp(buffer, "#folders")){
                     mode = 2;
                     config.folders[config.amountOfFolders].amountOfExtensions=0;
+                    memset(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions],0,sizeof(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions]));
+                    memset(config.folders[config.amountOfFolders].extensions[0], '*', sizeof(config.folders[config.amountOfFolders].extensions[0]));
+                    config.folders[config.amountOfFolders].amountOfTags=0;
+                    memset(config.paths[config.amountOfPaths].tags[config.paths[config.amountOfPaths].amountOfTags],0,sizeof(config.paths[config.amountOfPaths].tags[config.paths[config.amountOfPaths].amountOfTags]));
+                    memset(config.folders[config.amountOfFolders].tags[0], '*', sizeof(config.folders[config.amountOfFolders].tags[0]));
                 }
                 if(!strcmp(buffer, "#settings")){
                     mode = 3;
@@ -133,10 +145,8 @@ struct configStruct readConfig(char* configPath){
                     if(!strcmp(buffer, "tags")){
                       submode=2;
                       config.paths[config.amountOfPaths].amountOfTags=0;
-                      memset(config.paths[config.amountOfPaths].tags[config.paths[config.amountOfPaths].amountOfTags],0,sizeof(config.paths[config.amountOfPaths].tags[config.paths[config.amountOfPaths].amountOfTags]));
                   }
                     if(submode!=0){
-                      //printf("%s\n",buffer);
                       memset(buffer, 0, sizeof(buffer));
                       i=0;
                      }
@@ -175,7 +185,12 @@ struct configStruct readConfig(char* configPath){
         case 2:{//läser #folders
                 if(c==','&&bracket==0){
                   config.amountOfFolders++;
-                  config.folders[config.amountOfFolders].amountOfExtensions=0;
+                  config.folders[config.amountOfFolders].amountOfExtensions = 0;
+                  memset(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions],0,sizeof(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions]));
+                  memset(config.folders[config.amountOfFolders].extensions[0], '*', 1);
+                  config.folders[config.amountOfFolders].amountOfTags=0;
+                  memset(config.paths[config.amountOfPaths].tags[config.paths[config.amountOfPaths].amountOfTags],0,sizeof(config.paths[config.amountOfPaths].tags[config.paths[config.amountOfPaths].amountOfTags]));
+                  memset(config.folders[config.amountOfFolders].tags[0], '*', 1);
                   i=0;
                   submode=0;
                   memset(buffer,0,sizeof(buffer));
@@ -188,16 +203,11 @@ struct configStruct readConfig(char* configPath){
                     }
                     if(!strcmp(buffer, "tags")){
                       submode=2;
-                      config.folders[config.amountOfFolders].amountOfTags=0;
-                      memset(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags],0,sizeof(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags]));
                   }
                     if(!strcmp(buffer, "extensions")){
                       submode=3;
-                      memset(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions],0,sizeof(config.folders[config.amountOfFolders].extensions[config.folders[config.amountOfFolders].amountOfExtensions]));
-                        config.folders[config.amountOfFolders].amountOfExtensions++;
                         }
                     if(submode!=0){
-                      //printf("%s\n",buffer);
                       memset(buffer, 0, sizeof(buffer));
                       i=0;
                      }
@@ -224,7 +234,6 @@ struct configStruct readConfig(char* configPath){
                 }
                 if(bracket==2&&c==','){
                     memcpy(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags], buffer, sizeof(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags]));
-                    //printf("Tag: %s\n",buffer);
                     memset(buffer,0,sizeof(buffer));
                     config.folders[config.amountOfFolders].amountOfTags++;
                     memset(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags],0,sizeof(config.folders[config.amountOfFolders].tags[config.folders[config.amountOfFolders].amountOfTags]));
@@ -249,8 +258,6 @@ struct configStruct readConfig(char* configPath){
                 }
                 break;
              }
-
-
                }
                 }
     }
